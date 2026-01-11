@@ -1,190 +1,238 @@
 ---
-description: Interactive design session to define user stories and update UNIFIED_PLAN.md
+description: Interactive design session to create a new task
 argument-hint: <feature-description>
-allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Task, TodoWrite
+allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Bash, TodoWrite
 ---
 
-# Feature Design Session
+# Create New Task
 
-You are a systems architect conducting an interactive design session. Your goal is to gather requirements through questions and produce a well-defined task with user stories.
+You are a systems architect conducting an interactive design session. Your goal is to gather requirements through questions and produce a well-defined task in the tasks/ directory.
 
 **Feature to Design**: $ARGUMENTS
 
 ## Process
 
-### Step 1: Locate or Create UNIFIED_PLAN.md
+### Step 1: Determine Layer and Location
 
-First, check if UNIFIED_PLAN.md exists in the repository root. If not, create it with a standard template.
+Identify which layer this task belongs to:
 
+| Layer | Task Directory | Prefix | Example |
+|-------|---------------|--------|---------|
+| **Crane** | `lib/daosys/lib/crane/tasks/` | C | C-1, C-2 |
+| **daosys** | `lib/daosys/tasks/` | D | D-1, D-2 |
+| **IndexedEx** | `tasks/` | I | I-1, I-2 |
+
+If the tasks directory doesn't exist, inform user to run `/design:init` first.
+
+### Step 2: Get Next Task Number
+
+Scan existing task directories to find the next available number:
+
+```bash
+# For IndexedEx layer:
+ls -d tasks/I-* 2>/dev/null | sed 's/.*I-//' | sort -n | tail -1
+# Increment by 1 for new task
 ```
-UNIFIED_PLAN.md should contain:
-- Ecosystem layers table
-- Task sections with standard format
-- Worktree status (if using git-wt)
-```
 
-### Step 2: Research Context
+### Step 3: Research Context
 
 Before asking questions, gather context:
-1. Read UNIFIED_PLAN.md to understand existing tasks and patterns
-2. Read CLAUDE.md to understand project architecture
-3. If the feature involves existing code, explore relevant contracts/files
-4. Identify the next available task number
+1. Read PRD.md to understand project goals
+2. Read CLAUDE.md to understand technical conventions
+3. Read tasks/INDEX.md to see existing tasks
+4. If the feature involves existing code, explore relevant files
+5. Check for dependencies on other tasks
 
-### Step 3: Interactive Requirements Gathering
+### Step 4: Interactive Requirements Gathering
 
-Use the AskUserQuestion tool to ask 2-4 focused questions at a time. Structure your questions to understand:
+Use AskUserQuestion to ask 2-4 focused questions at a time.
 
 **Round 1 - Scope & Purpose:**
-- What problem does this solve?
-- What layer does this belong to? (Crane framework, daosys, or product-specific)
-- What are the key user actions?
-
-**Round 2 - Technical Approach:**
+- What problem does this task solve?
+- Which layer does it belong to?
+- What are the key user actions or outcomes?
 - What existing patterns should this follow?
-- What dependencies does this have on other tasks?
-- What external protocols/contracts does this interact with?
 
-**Round 3 - Implementation Details:**
-- What are the key design decisions to make?
-- What are the acceptance criteria?
-- What tests are needed?
+**Round 2 - Dependencies & Constraints:**
+- What other tasks must complete first?
+- What external protocols/systems does this interact with?
+- What are the key constraints or limitations?
 
-Continue asking questions until you have enough information to write complete user stories.
+**Round 3 - Acceptance Criteria:**
+- What specific behaviors must be implemented?
+- What tests are required?
+- What are the edge cases to handle?
 
-### Step 4: Draft User Stories
+**Round 4 - Implementation Details:**
+- What files need to be created or modified?
+- What key design decisions need to be made?
+- Any performance or gas requirements?
 
-For each user story, use this format:
+Continue until you have enough information for complete user stories.
 
-```markdown
-**US-X.Y: [Title]**
-As a [user/system/keeper], I want to [action] so that [benefit].
+### Step 5: Create Task Directory
 
-Acceptance Criteria:
-- Specific, testable criterion 1
-- Specific, testable criterion 2
-- ...
+Create the task directory with all files:
+
+```
+tasks/[PREFIX]-[N]/
+├── PRD.md
+├── PROGRESS.md
+└── REVIEW.md
 ```
 
-### Step 5: Create Task Section
+### Step 6: Write PRD.md
 
-Generate a complete task section including:
-- Task number and title
-- Layer (Crane/daosys/IndexedEx)
-- Worktree name suggestion
-- Status (Ready for Agent)
-- Description
-- Dependencies
-- Technical details (diagrams, interfaces, etc.)
-- User Stories (US-X.1 through US-X.N)
-- Files to Create/Modify
-- Inventory Check (what agent must verify)
-- Completion Criteria
-
-### Step 6: Update UNIFIED_PLAN.md
-
-Add the new task section to UNIFIED_PLAN.md in the appropriate location (before Worktree Status section).
-
-### Step 7: Commit Changes
-
-After user confirms the design, commit the updated UNIFIED_PLAN.md with a descriptive message.
-
-## Standard Task Template
+Use the template from tasks/0/PRD.md, filling in:
 
 ```markdown
-## Task N: [Title]
+---
+task: [N]
+title: [Title]
+status: pending
+layer: [Layer]
+worktree: feature/[kebab-case-name]
+created: [Today's date]
+dependencies: [List of task IDs, e.g., ["I-1", "C-3"]]
+---
 
-**Layer:** [Crane | daosys | IndexedEx]
-**Worktree:** `feature/[kebab-case-name]`
-**Status:** Ready for Agent
+# Task [PREFIX]-[N]: [Title]
 
-### Description
-[2-3 sentences describing the feature and its purpose]
+## Description
 
-### Dependencies
-- [List of prerequisite tasks or conditions]
+[2-3 sentences from discussion]
 
-### [Technical Section - varies by feature type]
-[Diagrams, interfaces, architecture details]
+## Dependencies
 
-### User Stories
+[From discussion - list task IDs and titles]
 
-**US-N.1: [First Story Title]**
+## Technical Details
+
+[From discussion - architecture, interfaces, etc.]
+
+## User Stories
+
+### US-[N].1: [Story Title]
+
 As a [role], I want to [action] so that [benefit].
 
-Acceptance Criteria:
-- [Criterion 1]
-- [Criterion 2]
+**Acceptance Criteria:**
+- [ ] [Criterion from discussion]
+- [ ] [Criterion from discussion]
 
 [Additional user stories...]
 
-### Files to Create/Modify
+## Files to Create/Modify
 
-**New Files:**
-- `path/to/NewFile.sol` - Description
+[From discussion]
 
-**Modified Files:**
-- `path/to/ExistingFile.sol` - What changes
+## Inventory Check
 
-**Tests:**
-- `test/path/TestFile.t.sol` - Description
+- [ ] [Prerequisites to verify]
 
-### Inventory Check (Agent must verify)
-- [ ] [Prerequisite 1 exists/works]
-- [ ] [Prerequisite 2 exists/works]
+## Completion Criteria
 
-### Completion Criteria
-- [Measurable criterion 1]
-- [Measurable criterion 2]
-- [Tests pass]
+- [ ] All acceptance criteria met
+- [ ] Tests pass
+- [ ] Build succeeds
+- [ ] Documentation updated
+
+## Notes for Reviewer
+
+[To be filled by implementing agent]
+
+---
+
+**When complete, output:** `<promise>TASK_COMPLETE</promise>`
+
+**If blocked, output:** `<promise>TASK_BLOCKED: [reason]</promise>`
 ```
 
-## UNIFIED_PLAN.md Template (if creating new)
+### Step 7: Initialize PROGRESS.md
 
 ```markdown
-# Unified Development Plan
+# Progress Log: Task [PREFIX]-[N]
 
-This document tracks all planned features across the ecosystem.
-Work is segmented into parallel worktrees for independent agent execution.
+## Current Checkpoint
 
-**Last Updated:** [DATE]
-
-## Ecosystem Layers
-
-| Layer | Repo | Purpose |
-|-------|------|---------|
-| **Crane** | `lib/daosys/lib/crane` | Reusable Solidity framework |
-| **daosys** | `lib/daosys` | Aggregator package |
-| **[Product]** | `.` (root) | Product-specific business logic |
+**Last checkpoint:** Not started
+**Next step:** Read PRD.md and begin implementation
+**Build status:** ⏳ Not checked
+**Test status:** ⏳ Not checked
 
 ---
 
-## Task 1: [First Task]
+## Session Log
 
-[Task content...]
+### [Today's Date] - Task Created
 
----
-
-## Worktree Status
-
-| Worktree | Path | Status |
-|----------|------|--------|
-
----
-
-## Agent Execution Notes
-
-Each agent receives a `PROMPT.md` in its worktree with:
-1. Clear scope boundaries
-2. Inventory check requirements
-3. Standardized completion promise (`TASK_COMPLETE`)
-4. Files NOT to modify (owned by other agents)
+- Task designed via /design:task
+- PRD.md populated with requirements
+- Ready for agent assignment
 ```
 
-## Remember
+### Step 8: Initialize REVIEW.md
 
-- Always use AskUserQuestion to clarify before assuming
-- Keep user stories focused and testable
-- Reference existing patterns from CLAUDE.md
-- Include both success and failure/edge case criteria
-- Suggest a logical task number based on existing tasks
+Copy template from tasks/0/REVIEW.md, updating task number.
+
+### Step 9: Update INDEX.md
+
+Add the new task to tasks/INDEX.md:
+
+```markdown
+| [PREFIX]-[N] | [Title] | 🆕 pending | `feature/[name]` | [Dependencies] | [Date] |
+```
+
+### Step 10: Check Dependencies
+
+If this task depends on other tasks, check their status:
+- If dependency is complete: ✅ OK
+- If dependency is in_progress: Note in output
+- If dependency is pending/blocked: Mark this task as blocked
+
+### Step 11: Output Summary
+
+```
+# Task Created: [PREFIX]-[N]
+
+**Title:** [Title]
+**Layer:** [Layer]
+**Status:** pending
+**Dependencies:** [List or "None"]
+
+## Files Created
+
+- tasks/[PREFIX]-[N]/PRD.md
+- tasks/[PREFIX]-[N]/PROGRESS.md
+- tasks/[PREFIX]-[N]/REVIEW.md
+- Updated tasks/INDEX.md
+
+## Launch Agent
+
+To start working on this task:
+
+1. Create worktree:
+   ```bash
+   ./scripts/wt-create.sh feature/[name]
+   ```
+
+2. Launch agent:
+   ```bash
+   cd [worktree-path]
+   claude --dangerously-skip-permissions
+   ```
+
+3. Start task:
+   ```
+   /ralph-loop:ralph-loop "Read tasks/[PREFIX]-[N]/PRD.md and execute the task." --completion-promise "TASK_COMPLETE"
+   ```
+
+Or use: /backlog:launch [PREFIX]-[N]
+```
+
+## Error Handling
+
+- **No tasks/ directory:** Suggest running `/design:init`
+- **No PRD.md in repo root:** Suggest running `/design:prd`
+- **Dependency task doesn't exist:** Warn user, ask to continue anyway
+- **Dependency task is blocked:** Ask if this task should also be marked blocked
