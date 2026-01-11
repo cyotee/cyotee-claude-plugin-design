@@ -1,7 +1,7 @@
 {
   "name": "design",
-  "description": "Interactive design sessions for defining tasks and user stories",
-  "version": "1.0.0",
+  "description": "Interactive design sessions for defining tasks in tasks/ directory",
+  "version": "1.1.0",
   "author": {
     "name": "cyotee"
   }
