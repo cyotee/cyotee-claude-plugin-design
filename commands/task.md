@@ -12,15 +12,28 @@ You are a systems architect conducting an interactive design session. Your goal 
 
 ## Process
 
-### Step 1: Determine Layer and Location
+### Step 1: Detect Layer and Location
 
-Identify which layer this task belongs to:
+Dynamically determine which layer this task belongs to:
 
-| Layer | Task Directory | Prefix | Example |
-|-------|---------------|--------|---------|
-| **Crane** | `lib/daosys/lib/crane/tasks/` | C | C-1, C-2 |
-| **daosys** | `lib/daosys/tasks/` | D | D-1, D-2 |
-| **IndexedEx** | `tasks/` | I | I-1, I-2 |
+1. **Find tasks/ directory** relative to current working directory:
+   ```bash
+   # Check for tasks/ in current directory or parents
+   if [ -d "tasks" ]; then
+     TASKS_DIR="tasks"
+   elif [ -d "../tasks" ]; then
+     TASKS_DIR="../tasks"
+   fi
+   ```
+
+2. **Read layer config** from `tasks/INDEX.md` or `tasks/config.yaml` if exists
+
+3. **Auto-detect layer name** from repository/directory name:
+   ```bash
+   basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)
+   ```
+
+4. **Auto-detect prefix** from first letter of layer name (uppercase)
 
 If the tasks directory doesn't exist, inform user to run `/design:init` first.
 
@@ -29,8 +42,9 @@ If the tasks directory doesn't exist, inform user to run `/design:init` first.
 Scan existing task directories to find the next available number:
 
 ```bash
-# For IndexedEx layer:
-ls -d tasks/I-* 2>/dev/null | sed 's/.*I-//' | sort -n | tail -1
+# Get prefix from INDEX.md or auto-detect
+PREFIX=$(grep "Prefix:" tasks/INDEX.md | awk '{print $2}' || echo "T")
+ls -d tasks/${PREFIX}-* 2>/dev/null | sed "s/.*${PREFIX}-//" | sort -n | tail -1
 # Increment by 1 for new task
 ```
 
@@ -93,7 +107,7 @@ status: pending
 layer: [Layer]
 worktree: feature/[kebab-case-name]
 created: [Today's date]
-dependencies: [List of task IDs, e.g., ["I-1", "C-3"]]
+dependencies: [List of task IDs, e.g., ["[PREFIX]-1", "[PREFIX]-3"]]
 ---
 
 # Task [PREFIX]-[N]: [Title]

@@ -14,17 +14,16 @@ You are a systems architect conducting an interactive design session. Your goal 
 
 ## Quick Reference
 
-### Layer Locations
+### Layer Detection
 
-| Layer | Task Directory | Prefix |
-|-------|---------------|--------|
-| **Crane** | `lib/daosys/lib/crane/tasks/` | C |
-| **daosys** | `lib/daosys/tasks/` | D |
-| **IndexedEx** | `tasks/` | I |
+Layers are detected dynamically by scanning for `tasks/` directories:
+- Read `tasks/INDEX.md` for layer name and prefix
+- If not found, auto-detect from directory/repo name
+- Prefix is first letter of layer name (uppercase)
 
 ### Process
 
-1. Determine layer and get next task number
+1. Detect layer from current directory and get next task number
 2. Research context (PRD.md, CLAUDE.md, existing tasks)
 3. Interactive Q&A to gather requirements
 4. Create task directory with PRD.md, PROGRESS.md, REVIEW.md

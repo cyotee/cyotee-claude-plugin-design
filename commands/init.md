@@ -1,6 +1,6 @@
 ---
 description: Initialize task management directory structure in a repository
-allowed-tools: Read, Write, Bash, Glob
+allowed-tools: Read, Write, Bash, Glob, AskUserQuestion
 ---
 
 # Initialize Task Management Structure
@@ -9,15 +9,34 @@ Create the tasks/ directory structure with template files for a new repository o
 
 ## Instructions
 
-### Step 1: Determine Layer
+### Step 1: Detect Layer Configuration
 
-Check if you're in a submodule or the root repository:
+Dynamically determine layer name and prefix:
 
-```
-Root repository (IndexedEx): tasks/ with I-prefixed task numbers
-daosys submodule: lib/daosys/tasks/ with D-prefixed task numbers
-Crane submodule: lib/daosys/lib/crane/tasks/ with C-prefixed task numbers
-```
+1. **Get repository/directory name:**
+   ```bash
+   # Get current repo name
+   basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)
+   ```
+
+2. **Check for existing tasks/ directories** (to avoid prefix collisions):
+   ```bash
+   # Find all tasks/ directories in the repo tree
+   find . -type d -name "tasks" -not -path "*/node_modules/*" 2>/dev/null
+   ```
+
+3. **Generate prefix** from first letter of directory/repo name (uppercase)
+
+4. **If prefix collision detected**, use AskUserQuestion to ask user for alternative prefix
+
+5. **Check for config file** at `tasks/config.yaml` for existing layer definitions:
+   ```yaml
+   # Optional config file format
+   layers:
+     - name: "ProjectName"
+       prefix: "P"
+       path: "tasks/"
+   ```
 
 ### Step 2: Create Directory Structure
 
@@ -42,7 +61,7 @@ tasks/
 task: 0
 title: Task Template
 status: template
-layer: [Crane|daosys|IndexedEx]
+layer: [LAYER_NAME]
 worktree: feature/task-name
 created: YYYY-MM-DD
 dependencies: []
@@ -56,7 +75,7 @@ dependencies: []
 
 ## Dependencies
 
-- [List prerequisite tasks: e.g., "C-1: Slipstream Utils"]
+- [List prerequisite tasks: e.g., "[PREFIX]-1: Task Name"]
 - [Or "None" if no dependencies]
 
 ## Technical Details
@@ -228,8 +247,8 @@ Options:
 ```markdown
 # Task Index
 
-**Layer:** [Crane|daosys|IndexedEx]
-**Prefix:** [C|D|I]
+**Layer:** [LAYER_NAME]
+**Prefix:** [PREFIX]
 
 ## Active Tasks
 

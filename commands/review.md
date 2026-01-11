@@ -1,12 +1,12 @@
 ---
-description: Review and refine tasks in UNIFIED_PLAN.md
-argument-hint: [<task-number>]
+description: Review and refine tasks in tasks/ directory
+argument-hint: [<task-id>]
 allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Task, TodoWrite
 ---
 
 # Task Review Session
 
-Review and refine tasks in UNIFIED_PLAN.md. You can review all tasks or focus on a specific task.
+Review and refine tasks in the tasks/ directory. You can review all tasks or focus on a specific task.
 
 **Arguments received:** $ARGUMENTS
 
@@ -14,7 +14,7 @@ Review and refine tasks in UNIFIED_PLAN.md. You can review all tasks or focus on
 
 ### If no arguments: Review All Tasks
 
-1. **Read UNIFIED_PLAN.md** and analyze each task for:
+1. **Scan tasks/ directories** and analyze each task's PRD.md for:
    - Completeness (all required sections present)
    - Clarity (unambiguous requirements)
    - User story quality (testable acceptance criteria)
@@ -44,11 +44,11 @@ Review and refine tasks in UNIFIED_PLAN.md. You can review all tasks or focus on
   - [Action 2]
 ```
 
-3. **Ask user** which tasks they want to address, then update UNIFIED_PLAN.md accordingly.
+3. **Ask user** which tasks they want to address, then update tasks/[ID]/PRD.md accordingly.
 
 ### If task number provided: Review Specific Task
 
-1. **Read UNIFIED_PLAN.md** and find the specified task.
+1. **Read tasks/[ID]/PRD.md** and find the specified task.
 
 2. **Analyze the task** for:
    - **Description clarity:** Is the purpose clear?
@@ -65,7 +65,7 @@ Review and refine tasks in UNIFIED_PLAN.md. You can review all tasks or focus on
    - Update outdated information
    - Add newly discovered dependencies
 
-4. **Update the task** in UNIFIED_PLAN.md with refinements.
+4. **Update the task** in tasks/[ID]/PRD.md with refinements.
 
 5. **Commit changes** with descriptive message.
 
@@ -92,7 +92,7 @@ For each task, verify:
 ### Consistency
 - [ ] Task number matches position in document
 - [ ] Status reflects actual progress
-- [ ] Layer (Crane/daosys/product) is correct
+- [ ] Layer is correctly identified in frontmatter
 - [ ] Worktree branch name follows convention
 
 ## Common Issues to Flag
