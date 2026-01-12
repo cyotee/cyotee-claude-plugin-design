@@ -5,86 +5,88 @@ allowed-tools: Read, Write, Bash, Glob, AskUserQuestion
 
 # Initialize Task Management Structure
 
-Create the tasks/ directory structure with template files for a new repository or layer.
+Create the tasks/ directory structure with template files for a new repository.
 
 ## Instructions
 
-### Step 1: Detect Layer Configuration
+### Step 1: Detect or Create Configuration
 
-Dynamically determine layer name and prefix:
-
-1. **Get repository/directory name:**
+1. **Check for existing configuration:**
    ```bash
-   # Get current repo name
-   basename $(git rev-parse --show-toplevel 2>/dev/null || pwd)
+   # Check for design.yaml in repo root
+   if [ -f "design.yaml" ]; then
+     echo "Found design.yaml"
+     cat design.yaml
+   fi
+
+   # Check for local overrides
+   if [ -f ".claude/design.local.md" ]; then
+     echo "Found local overrides"
+   fi
    ```
 
-2. **Check for existing tasks/ directories** (to avoid prefix collisions):
-   ```bash
-   # Find all tasks/ directories in the repo tree
-   find . -type d -name "tasks" -not -path "*/node_modules/*" 2>/dev/null
-   ```
+2. **If no design.yaml exists**, ask user for configuration:
+   - Use AskUserQuestion to get:
+     - Repo prefix (2-6 uppercase chars, e.g., CRANE, DAO, IDX)
+     - Repo name (human-readable name for the repo)
 
-3. **Generate prefix** from first letter of directory/repo name (uppercase)
-
-4. **If prefix collision detected**, use AskUserQuestion to ask user for alternative prefix
-
-5. **Check for config file** at `tasks/config.yaml` for existing layer definitions:
+3. **Create design.yaml** in repo root:
    ```yaml
-   # Optional config file format
-   layers:
-     - name: "ProjectName"
-       prefix: "P"
-       path: "tasks/"
+   # design.yaml - Task management configuration
+   # This file is shared with the team (checked into git)
+
+   repo_prefix: <PREFIX>
+   repo_name: <REPO_NAME>
+
+   # Optional: define submodules for root repos
+   # submodules:
+   #   - prefix: DAO
+   #     path: lib/daosys
+   #     name: DAOsys
    ```
+
+4. **Note about local overrides** (optional, user can create later):
+   - `.claude/design.local.md` - gitignored, per-developer overrides
+   - Can override any setting from design.yaml
 
 ### Step 2: Create Directory Structure
 
-Create the following structure in the appropriate location:
+Create the following structure:
 
 ```
 tasks/
-├── 0/                    # Template directory
-│   ├── PRD.md           # Task requirements template
-│   ├── PROGRESS.md      # Progress log template
-│   └── REVIEW.md        # Review findings template
-├── archive/             # Completed tasks moved here
-└── INDEX.md             # Task index/status overview
+├── TEMPLATE.md          # Task template
+├── INDEX.md             # Task index/status overview
+└── archive/             # Completed tasks moved here
 ```
 
 ### Step 3: Create Template Files
 
-**tasks/0/PRD.md:**
+**tasks/TEMPLATE.md:**
 
 ```markdown
----
-task: 0
-title: Task Template
-status: template
-layer: [LAYER_NAME]
-worktree: feature/task-name
-created: YYYY-MM-DD
-dependencies: []
----
+# Task {PREFIX}-{NNN}: {Title}
 
-# Task [PREFIX]-N: [Title]
+**Repo:** {REPO_NAME}
+**Status:** Ready
+**Created:** {DATE}
+**Dependencies:** None
+**Worktree:** `feature/{kebab-name}`
+
+---
 
 ## Description
 
-[2-3 sentences describing the task and its purpose]
+[2-3 sentences explaining the feature and its purpose]
 
 ## Dependencies
 
-- [List prerequisite tasks: e.g., "[PREFIX]-1: Task Name"]
-- [Or "None" if no dependencies]
-
-## Technical Details
-
-[Architecture diagrams, interface definitions, implementation notes]
+- [List prerequisite tasks: e.g., "{PREFIX}-001: Task Name"]
+- Or "None" if no dependencies
 
 ## User Stories
 
-### US-N.1: [Story Title]
+### US-{PREFIX}-{NNN}.1: [Story Title]
 
 As a [role], I want to [action] so that [benefit].
 
@@ -92,9 +94,13 @@ As a [role], I want to [action] so that [benefit].
 - [ ] [Specific, testable criterion]
 - [ ] [Specific, testable criterion]
 
-### US-N.2: [Story Title]
+### US-{PREFIX}-{NNN}.2: [Story Title]
 
 ...
+
+## Technical Details
+
+[Architecture diagrams, interface definitions, implementation notes]
 
 ## Files to Create/Modify
 
@@ -116,13 +122,9 @@ Before starting, verify:
 ## Completion Criteria
 
 - [ ] All acceptance criteria met
-- [ ] Tests pass (`forge test --match-path ...`)
-- [ ] Build succeeds (`forge build`)
+- [ ] Tests pass
+- [ ] Build succeeds
 - [ ] No new compiler warnings
-
-## Notes for Reviewer
-
-[Agent adds notes here after implementation, before review]
 
 ---
 
@@ -131,153 +133,41 @@ Before starting, verify:
 **If blocked, output:** `<promise>TASK_BLOCKED: [reason]</promise>`
 ```
 
-**tasks/0/PROGRESS.md:**
-
-```markdown
-# Progress Log: Task [PREFIX]-N
-
-## Current Checkpoint
-
-**Last checkpoint:** [Not started]
-**Next step:** [Read PRD.md and begin implementation]
-**Build status:** ⏳ Not checked
-**Test status:** ⏳ Not checked
-
----
-
-## Session Log
-
-<!-- Newest entries at top (reverse chronological) -->
-
-### YYYY-MM-DD HH:MM - Session Start
-
-- Initial session
-- Reading PRD.md and CLAUDE.md
-
----
-
-## Checkpoint Template
-
-Use this format for checkpoint entries:
-
-### YYYY-MM-DD HH:MM - [Checkpoint Name]
-
-**Summary:** [Brief description of what was accomplished]
-
-**Changes:**
-- [File changed/created]
-- [File changed/created]
-
-**Decisions made:**
-- [Design decision and rationale]
-
-**Blockers/Issues:**
-- [Any problems encountered]
-
-**Next steps:**
-- [What to do next]
-
-**Build status:** ✅ Passing | ❌ Failing | ⏳ Not checked
-**Test status:** ✅ Passing | ❌ Failing | ⏳ Not checked
-```
-
-**tasks/0/REVIEW.md:**
-
-```markdown
----
-reviewer: [pending]
-date: [pending]
-verdict: pending
----
-
-# Review: Task [PREFIX]-N
-
-## Acceptance Criteria Check
-
-From PRD.md, verify each criterion:
-
-| Criterion | Status | Notes |
-|-----------|--------|-------|
-| [Copy from PRD] | ⏳ | |
-
-## Code Review Checklist
-
-- [ ] Code follows project conventions (CLAUDE.md)
-- [ ] No `new` deployments (uses CREATE3 factory)
-- [ ] Tests cover success and failure paths
-- [ ] No security vulnerabilities introduced
-- [ ] Documentation updated where needed
-
-## Findings
-
-| ID | Severity | Summary | Status |
-|----|----------|---------|--------|
-| R-1 | | | |
-
-**Severity levels:** Blocker | High | Medium | Low | Nit
-
-## Build & Test Verification
-
-```bash
-# Commands run:
-forge build
-forge test --match-path [relevant tests]
-```
-
-**Build result:** ⏳
-**Test result:** ⏳
-
-## Follow-up Tasks
-
-- [ ] [Any new tasks spawned from review findings]
-
-## Verdict
-
-**[PENDING]**
-
-Options:
-- **PASS** - Ready to merge
-- **PASS WITH NOTES** - Ready to merge, minor items tracked
-- **NEEDS WORK** - Must address findings before merge
-- **BLOCKED** - Cannot proceed, requires [what]
-```
-
 **tasks/INDEX.md:**
 
 ```markdown
-# Task Index
+# Task Index: {REPO_NAME}
 
-**Layer:** [LAYER_NAME]
-**Prefix:** [PREFIX]
+**Repo:** {PREFIX}
+**Last Updated:** {DATE}
 
 ## Active Tasks
 
-| # | Title | Status | Worktree | Dependencies | Created |
-|---|-------|--------|----------|--------------|---------|
-| | | | | | |
+| ID | Title | Status | Dependencies | Worktree |
+|----|-------|--------|--------------|----------|
+| | | | | |
 
 ## Status Legend
 
-- 🆕 **pending** - Task defined, not started
-- 🚀 **in_progress** - Agent actively working
-- 📋 **review** - Implementation complete, awaiting review
-- ✅ **complete** - Reviewed and merged
-- ❌ **blocked** - Cannot proceed (see task for reason)
+- **Ready** - All dependencies met, can be launched with `/backlog:launch`
+- **In Progress** - Implementation agent working (has worktree)
+- **In Review** - Implementation complete, awaiting code review
+- **Changes Requested** - Review found issues, needs fixes
+- **Complete** - Review passed, ready to archive with `/backlog:prune`
+- **Blocked** - Waiting on dependencies
 
-## Quick Commands
+## Quick Filters
 
-```bash
-# Launch agent for a task
-cd <worktree-path>
-claude --dangerously-skip-permissions
+### Ready for Agent
+(Tasks with all dependencies met)
 
-# In Claude, start the agent loop
-/ralph-loop:ralph-loop "Read tasks/[N]/PRD.md and PROGRESS.md. Continue from last checkpoint." --completion-promise "TASK_COMPLETE"
-```
+### Blocked
+(Tasks waiting on dependencies)
 
-## Archived Tasks
+## Cross-Repo Dependencies
 
-See `tasks/archive/` for completed tasks.
+Tasks in other repos that depend on this repo's tasks:
+- (none yet)
 ```
 
 ### Step 4: Confirm Creation
@@ -288,13 +178,23 @@ After creating all files, output:
 ✅ Task management structure initialized
 
 Created:
-- tasks/INDEX.md
-- tasks/0/PRD.md (template)
-- tasks/0/PROGRESS.md (template)
-- tasks/0/REVIEW.md (template)
-- tasks/archive/ (directory)
+- design.yaml (repo configuration)
+- tasks/INDEX.md (task index)
+- tasks/TEMPLATE.md (task template)
+- tasks/archive/ (archive directory)
+
+Configuration:
+- Repo Prefix: {PREFIX}
+- Repo Name: {REPO_NAME}
 
 Next steps:
-1. Run /design:prd to create the project's global PRD.md
-2. Run /design:task to create your first task
+1. Run /design:prd to create the project's PRD.md (optional)
+2. Run /design to create your first task
+3. Or run /design:digest <file> to import tasks from an existing design document
 ```
+
+## Error Handling
+
+- **tasks/ already exists:** Ask user if they want to reinitialize (will not overwrite existing tasks)
+- **design.yaml already exists:** Show current config, ask if user wants to update it
+- **Not in a git repo:** Warn but continue (some features may not work)

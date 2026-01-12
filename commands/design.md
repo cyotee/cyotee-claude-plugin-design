@@ -1,42 +1,306 @@
 ---
-description: Interactive design session to create a new task (alias for /design:task)
+description: Interactive design session to create a new task
 argument-hint: <feature-description>
 allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Bash, TodoWrite
 ---
 
 # Create New Task
 
-This is an alias for `/design:task`. See that command for full documentation.
-
 You are a systems architect conducting an interactive design session. Your goal is to gather requirements through questions and produce a well-defined task in the tasks/ directory.
 
 **Feature to Design**: $ARGUMENTS
 
-## Quick Reference
+## Process
 
-### Layer Detection
+### Step 1: Load Configuration
 
-Layers are detected dynamically by scanning for `tasks/` directories:
-- Read `tasks/INDEX.md` for layer name and prefix
-- If not found, auto-detect from directory/repo name
-- Prefix is first letter of layer name (uppercase)
+Read repo configuration from design.yaml (or .claude/design.local.md for overrides):
 
-### Process
+```bash
+# Get repo root
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 
-1. Detect layer from current directory and get next task number
-2. Research context (PRD.md, CLAUDE.md, existing tasks)
-3. Interactive Q&A to gather requirements
-4. Create task directory with PRD.md, PROGRESS.md, REVIEW.md
-5. Update INDEX.md
-6. Output launch instructions
+# Check for config files
+if [ -f "$REPO_ROOT/design.yaml" ]; then
+  cat "$REPO_ROOT/design.yaml"
+fi
+if [ -f "$REPO_ROOT/.claude/design.local.md" ]; then
+  cat "$REPO_ROOT/.claude/design.local.md"
+fi
+```
 
-### Files Created
+Extract:
+- `repo_prefix` - The prefix for task IDs (e.g., CRANE, DAO, IDX)
+- `repo_name` - Human-readable repo name
+
+If no design.yaml exists, inform user to run `/design:init` first.
+
+### Step 2: Get Next Task Number
+
+Scan existing task directories to find the next available number:
+
+```bash
+# List existing task directories and find highest number
+ls -d tasks/${PREFIX}-* 2>/dev/null | \
+  sed "s/.*${PREFIX}-\([0-9]*\).*/\1/" | \
+  sort -n | \
+  tail -1
+
+# Next task number = highest + 1 (or 001 if none exist)
+```
+
+### Step 3: Research Context
+
+Before asking questions, gather context:
+
+1. Read PRD.md if it exists (project-level requirements)
+2. Read CLAUDE.md if it exists (technical conventions)
+3. Read tasks/INDEX.md to see existing tasks
+4. If the feature involves existing code, explore relevant files
+5. Check for dependencies on other tasks
+
+### Step 4: Interactive Requirements Gathering
+
+Use AskUserQuestion to ask 2-4 focused questions at a time.
+
+**Round 1 - Scope & Purpose:**
+- What problem does this task solve?
+- What are the key user actions or outcomes?
+- What existing patterns should this follow?
+
+**Round 2 - Dependencies & Constraints:**
+- What other tasks must complete first? (e.g., "CRANE-001")
+- What external protocols/systems does this interact with?
+- What are the key constraints or limitations?
+
+**Round 3 - Acceptance Criteria:**
+- What specific behaviors must be implemented?
+- What tests are required?
+- What are the edge cases to handle?
+
+**Round 4 - Implementation Details:**
+- What files need to be created or modified?
+- What key design decisions need to be made?
+- Any performance or gas requirements?
+
+Continue until you have enough information for complete user stories.
+
+### Step 5: Generate Task ID and Directory Name
 
 ```
-tasks/[PREFIX]-[N]/
-├── PRD.md        # Requirements and acceptance criteria
+Task ID: {PREFIX}-{NNN}
+Directory: tasks/{PREFIX}-{NNN}-{kebab-case-title}/
+Worktree: feature/{kebab-case-title}
+```
+
+Example:
+- Task: "Add Uniswap V4 utils library"
+- ID: CRANE-003
+- Directory: tasks/CRANE-003-uniswap-v4-utils/
+- Worktree: feature/uniswap-v4-utils
+
+### Step 6: Create Task Directory
+
+Create the task directory with all files:
+
+```
+tasks/{PREFIX}-{NNN}-{kebab-name}/
+├── TASK.md       # Requirements and acceptance criteria
 ├── PROGRESS.md   # Agent progress log
-└── REVIEW.md     # Review findings
+└── REVIEW.md     # Review findings (empty template)
 ```
 
-For full instructions, see `/design:task`.
+### Step 7: Write TASK.md
+
+Use the template from tasks/TEMPLATE.md (if exists), filling in all gathered information:
+
+```markdown
+# Task {PREFIX}-{NNN}: {Title}
+
+**Repo:** {REPO_NAME}
+**Status:** Ready
+**Created:** {TODAY}
+**Dependencies:** {List or "None"}
+**Worktree:** `feature/{kebab-name}`
+
+---
+
+## Description
+
+{2-3 sentences from discussion}
+
+## Dependencies
+
+{From discussion - list task IDs and titles, or "None"}
+
+## User Stories
+
+### US-{PREFIX}-{NNN}.1: {Story Title}
+
+As a {role}, I want to {action} so that {benefit}.
+
+**Acceptance Criteria:**
+- [ ] {Criterion from discussion}
+- [ ] {Criterion from discussion}
+
+{Additional user stories...}
+
+## Technical Details
+
+{From discussion - architecture, interfaces, etc.}
+
+## Files to Create/Modify
+
+**New Files:**
+- {path} - {description}
+
+**Modified Files:**
+- {path} - {what changes}
+
+**Tests:**
+- {test path} - {description}
+
+## Inventory Check
+
+Before starting, verify:
+- [ ] {Prerequisites to verify}
+
+## Completion Criteria
+
+- [ ] All acceptance criteria met
+- [ ] Tests pass
+- [ ] Build succeeds
+- [ ] Documentation updated (if applicable)
+
+---
+
+**When complete, output:** `<promise>TASK_COMPLETE</promise>`
+
+**If blocked, output:** `<promise>TASK_BLOCKED: [reason]</promise>`
+```
+
+### Step 8: Initialize PROGRESS.md
+
+```markdown
+# Progress Log: {PREFIX}-{NNN}
+
+## Current Checkpoint
+
+**Last checkpoint:** Not started
+**Next step:** Read TASK.md and begin implementation
+**Build status:** ⏳ Not checked
+**Test status:** ⏳ Not checked
+
+---
+
+## Session Log
+
+### {TODAY} - Task Created
+
+- Task designed via /design
+- TASK.md populated with requirements
+- Ready for agent assignment via /backlog:launch
+```
+
+### Step 9: Initialize REVIEW.md
+
+```markdown
+# Code Review: {PREFIX}-{NNN}
+
+**Reviewer:** (pending)
+**Review Started:** (pending)
+**Status:** Pending
+
+---
+
+## Clarifying Questions
+
+(Questions asked during review will be recorded here)
+
+---
+
+## Review Findings
+
+(Findings will be documented here during code review)
+
+---
+
+## Suggestions
+
+(Actionable suggestions for follow-up tasks)
+
+---
+
+## Review Summary
+
+**Findings:** (pending)
+**Suggestions:** (pending)
+**Recommendation:** (pending)
+
+---
+
+**When review complete, output:** `<promise>REVIEW_COMPLETE</promise>`
+```
+
+### Step 10: Update INDEX.md
+
+Add the new task to tasks/INDEX.md:
+
+```markdown
+| {PREFIX}-{NNN} | {Title} | Ready | {Dependencies or "-"} | - |
+```
+
+### Step 11: Check Dependencies
+
+If this task depends on other tasks, check their status:
+- If dependency is Complete: ✅ OK
+- If dependency is In Progress: Note in output
+- If dependency is Ready/Blocked: Mark this task as Blocked
+
+### Step 12: Output Summary
+
+```
+═══════════════════════════════════════════════════════════════════
+ TASK CREATED: {PREFIX}-{NNN}
+═══════════════════════════════════════════════════════════════════
+
+Title: {Title}
+Repo: {REPO_NAME}
+Status: {Ready | Blocked}
+Dependencies: {List or "None"}
+
+## Files Created
+
+- tasks/{PREFIX}-{NNN}-{kebab-name}/TASK.md
+- tasks/{PREFIX}-{NNN}-{kebab-name}/PROGRESS.md
+- tasks/{PREFIX}-{NNN}-{kebab-name}/REVIEW.md
+- Updated tasks/INDEX.md
+
+## Launch Agent
+
+To start working on this task:
+
+/backlog:launch {PREFIX}-{NNN}
+
+Or manually:
+
+1. Create worktree:
+   git worktree add -b feature/{kebab-name} ../repo-wt/feature/{kebab-name}
+
+2. Launch Claude in worktree:
+   cd ../repo-wt/feature/{kebab-name}
+   claude --dangerously-skip-permissions
+
+3. Start task:
+   /up:prompt
+
+═══════════════════════════════════════════════════════════════════
+```
+
+## Error Handling
+
+- **No tasks/ directory:** Inform user to run `/design:init` first
+- **No design.yaml:** Inform user to run `/design:init` first
+- **Dependency task doesn't exist:** Warn user, ask to continue anyway
+- **Dependency task is blocked:** Ask if this task should also be marked blocked
+- **Task number collision:** Auto-increment to next available number
