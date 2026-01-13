@@ -250,12 +250,96 @@ Add the new task to tasks/INDEX.md:
 | {PREFIX}-{NNN} | {Title} | Ready | {Dependencies or "-"} | - |
 ```
 
-### Step 11: Check Dependencies
+### Step 11: Validate and Check Dependencies
 
-If this task depends on other tasks, check their status:
-- If dependency is Complete: ✅ OK
-- If dependency is In Progress: Note in output
-- If dependency is Ready/Blocked: Mark this task as Blocked
+**Build dependency graph and validate:**
+
+```bash
+source "${CLAUDE_PLUGIN_ROOT}/../backlog/scripts/deps.sh"
+deps_build_graph
+```
+
+**For each listed dependency:**
+
+1. **Validate existence:**
+   ```bash
+   if ! deps_validate "${DEP_ID}"; then
+     echo "WARNING: Dependency ${DEP_ID} not found in task index"
+     # Ask user: Create anyway? Skip this dep? Abort?
+   fi
+   ```
+
+2. **Check for circular dependencies:**
+   - Temporarily add new task to graph
+   - Run cycle detection
+   ```bash
+   # Simulate adding this task
+   DEPS_GRAPH["${NEW_TASK_ID}"]="${DEPENDENCY_LIST}"
+   DEPS_ALL_TASKS+=("${NEW_TASK_ID}")
+
+   if ! deps_check_cycles; then
+     echo "ERROR: Adding this task would create a circular dependency!"
+     echo "Please remove or change the problematic dependency."
+     # Show the cycle path
+     # Abort task creation
+   fi
+   ```
+
+3. **Determine initial status:**
+   ```bash
+   # Check if all dependencies are complete
+   all_complete=true
+   for dep in ${DEPENDENCY_LIST}; do
+     dep_status="${DEPS_STATUS[$dep]:-}"
+     if [[ "$dep_status" != "Complete" ]]; then
+       all_complete=false
+       break
+     fi
+   done
+
+   if [[ "$all_complete" == "true" ]]; then
+     initial_status="Ready"
+   else
+     initial_status="Blocked"
+   fi
+   ```
+
+**Dependency validation output:**
+
+```
+## Dependency Validation
+
+| Dependency | Status | Valid |
+|------------|--------|-------|
+| CRANE-001 | Complete | ✓ |
+| CRANE-002 | In Progress | ✓ |
+| CRANE-999 | Not Found | ✗ |
+
+{If invalid dependencies}
+WARNING: The following dependencies were not found:
+- CRANE-999
+
+Options:
+1. Continue anyway (task will be blocked on non-existent dep)
+2. Remove invalid dependencies
+3. Abort task creation
+
+{If circular dependency detected}
+ERROR: Circular dependency detected!
+
+Adding this task would create a cycle:
+  CRANE-003 -> CRANE-001 -> CRANE-002 -> CRANE-003
+
+Please modify the dependencies to break the cycle.
+
+{If all valid}
+All dependencies validated.
+Initial status: {Ready | Blocked}
+
+{If Blocked, show what's blocking}
+Task will be Blocked until:
+- CRANE-002 is Complete (currently In Progress)
+```
 
 ### Step 12: Output Summary
 
@@ -301,6 +385,8 @@ Or manually:
 
 - **No tasks/ directory:** Inform user to run `/design:init` first
 - **No design.yaml:** Inform user to run `/design:init` first
-- **Dependency task doesn't exist:** Warn user, ask to continue anyway
-- **Dependency task is blocked:** Ask if this task should also be marked blocked
+- **Dependency task doesn't exist:** Warn user, offer options (continue/remove dep/abort)
+- **Dependency task is blocked/not complete:** Auto-mark this task as "Blocked"
+- **Circular dependency detected:** Show cycle path and abort (cannot create task)
 - **Task number collision:** Auto-increment to next available number
+- **Cross-repo dependency not found:** Warn but allow (may be in unscanned submodule)
