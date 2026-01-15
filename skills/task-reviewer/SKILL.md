@@ -1,6 +1,6 @@
 ---
 name: task-reviewer
-description: Review task definitions in tasks/ directory for quality and consistency. Use when the user says "review tasks", "check task quality", "validate tasks", "audit tasks", or wants to ensure tasks are well-defined before implementation.
+description: Review a specific task or few tasks for quality before implementation. Use when the user says "review this task", "check task quality", "is this task ready", "validate task MKT-003", or is working on a task and wants inline quality feedback. For comprehensive backlog audits, use the task-auditor agent instead.
 ---
 
 # Task Reviewer
