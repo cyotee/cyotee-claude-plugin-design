@@ -28,9 +28,10 @@ Use this skill to guide users through creating and refining tasks in the `tasks/
   5) Create empty `PROGRESS.md` (with Checkpoints section) and `REVIEW.md`.  
   6) Append the task row to `tasks/INDEX.md` (status `pending`).
 - `design:prd`: Run a focused interview to generate/refresh a repository-level `PRD.md` (vision, goals, constraints, users, success metrics).
-- `design:review` [<ID>]:
-  - For all tasks: scan `tasks/*` (skip `archive/`), flag missing/weak descriptions, acceptance criteria, dependencies, file path accuracy, and test coverage.  
+- `design:review` [<ID>]: **Audit task definitions** (not code review - use `/backlog:review` for code)
+  - For all tasks: scan `tasks/*` (skip `archive/`), flag missing/weak descriptions, acceptance criteria, dependencies, file path accuracy, and test coverage.
   - For a single task: apply the checklist and propose edits; update the files if asked.
+  - This reviews TASK.md quality, NOT implementation code.
 
 ## Task Template Reminders
 - PRD structure: description, dependencies, user stories with acceptance criteria, files/tests to touch, inventory checks, completion criteria.

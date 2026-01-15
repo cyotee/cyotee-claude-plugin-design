@@ -1,12 +1,14 @@
 ---
-description: Review and refine tasks in tasks/ directory
+description: Audit task definitions for quality and completeness (not code review - see /backlog:review for that)
 argument-hint: [<task-id>]
 allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Task, TodoWrite
 ---
 
-# Task Review Session
+# Task Definition Audit
 
-Review and refine task definitions in the tasks/ directory. You can review all tasks or focus on a specific task.
+Audit and refine task **definitions** (TASK.md files) for quality and completeness. This reviews the task specifications themselves, NOT the implementation code.
+
+**For code review** of completed implementations, use `/backlog:review` instead.
 
 **Arguments received:** $ARGUMENTS
 
