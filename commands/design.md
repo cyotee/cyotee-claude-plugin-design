@@ -244,11 +244,37 @@ Before starting, verify:
 
 ### Step 10: Update INDEX.md
 
-Add the new task to tasks/INDEX.md:
+Add the new task to tasks/INDEX.md.
 
+**IMPORTANT: INDEX.md Format Requirements**
+
+The INDEX.md file must follow a strict format for the task parser to work correctly:
+
+```markdown
+<!-- TASK INDEX - Do not modify this header structure -->
+<!-- Format: | ID | Title | Status | Dependencies | Worktree | -->
+<!-- Valid statuses: Ready, In Progress, In Review, Complete, Blocked, Changes Requested -->
+<!-- Task IDs must match pattern: PREFIX-NNN (e.g., MKT-001, CRANE-042) -->
+
+| ID | Title | Status | Dependencies | Worktree |
+|----|-------|--------|--------------|----------|
+| {PREFIX}-001 | Existing task | Complete | - | - |
+| {PREFIX}-{NNN} | {New Task Title} | Ready | {Dependencies or "-"} | - |
+```
+
+**Format rules:**
+1. **Header row required:** `| ID | Title | Status | Dependencies | Worktree |`
+2. **Task ID pattern:** Must match `PREFIX-NNN` (uppercase letters, hyphen, numbers)
+3. **Valid statuses:** `Ready`, `In Progress`, `In Review`, `Complete`, `Blocked`, `Changes Requested`
+4. **Dependencies:** Comma-separated task IDs, or `-` for none
+5. **Worktree:** Branch name or `-` if not assigned
+
+**Add the new row:**
 ```markdown
 | {PREFIX}-{NNN} | {Title} | Ready | {Dependencies or "-"} | - |
 ```
+
+**After editing INDEX.md**, the backlog plugin's PostToolUse hook will automatically validate the format and warn you if there are any issues.
 
 ### Step 11: Validate and Check Dependencies
 

@@ -141,11 +141,44 @@ Before starting, verify:
 **Repo:** {PREFIX}
 **Last Updated:** {DATE}
 
+<!-- TASK INDEX - Parser Format Specification
+     =========================================
+     This table is parsed by the backlog plugin's task management scripts.
+     Follow these rules to ensure compatibility:
+
+     REQUIRED HEADER (do not modify):
+     | ID | Title | Status | Dependencies | Worktree |
+
+     TASK ID FORMAT:
+     - Pattern: PREFIX-NNN (e.g., MKT-001, CRANE-042)
+     - PREFIX: 2-6 uppercase letters
+     - NNN: 3+ digit number
+
+     VALID STATUS VALUES:
+     - Ready           : All dependencies met, can start
+     - In Progress     : Agent actively working
+     - In Review       : Implementation complete, code review pending
+     - Changes Requested: Review feedback to address
+     - Complete        : Done, ready to archive
+     - Blocked         : Waiting on dependencies
+
+     DEPENDENCIES:
+     - Use "-" for no dependencies
+     - Comma-separated task IDs for multiple (e.g., "MKT-001, MKT-002")
+
+     WORKTREE:
+     - Use "-" if no worktree assigned
+     - Use branch name if assigned (e.g., "feature/my-task")
+
+     VALIDATION:
+     Run: /backlog:list --json to validate parsing
+     Run: scripts/validate-index.sh to check format
+-->
+
 ## Active Tasks
 
 | ID | Title | Status | Dependencies | Worktree |
 |----|-------|--------|--------------|----------|
-| | | | | |
 
 ## Status Legend
 
@@ -155,19 +188,6 @@ Before starting, verify:
 - **Changes Requested** - Review found issues, needs fixes
 - **Complete** - Review passed, ready to archive with `/backlog:prune`
 - **Blocked** - Waiting on dependencies
-
-## Quick Filters
-
-### Ready for Agent
-(Tasks with all dependencies met)
-
-### Blocked
-(Tasks waiting on dependencies)
-
-## Cross-Repo Dependencies
-
-Tasks in other repos that depend on this repo's tasks:
-- (none yet)
 ```
 
 ### Step 4: Confirm Creation
