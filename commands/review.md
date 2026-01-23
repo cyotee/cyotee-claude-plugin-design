@@ -1,7 +1,7 @@
 ---
 description: Audit task definitions for quality and completeness (not code review - see /backlog:review for that)
 argument-hint: [<task-id>]
-allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Task, TodoWrite
+allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, TaskCreate, TaskUpdate, TaskList
 ---
 
 # Task Definition Audit
@@ -11,6 +11,21 @@ Audit and refine task **definitions** (TASK.md files) for quality and completene
 **For code review** of completed implementations, use `/backlog:review` instead.
 
 **Arguments received:** $ARGUMENTS
+
+## Register Operation with Built-in Task Feature
+
+**IMPORTANT:** Use the built-in Task feature to track this audit operation.
+
+Call `TaskCreate` with:
+- **subject**: `Review: {TASK_ID or "All Tasks"}`
+- **description**: `Auditing task definitions for quality and completeness`
+- **activeForm**: `Reviewing task definitions`
+
+Then call `TaskUpdate` to set status to `in_progress`:
+- **taskId**: The ID returned from TaskCreate
+- **status**: `in_progress`
+
+Store this task ID for later completion.
 
 ## Command Dispatch
 
@@ -164,6 +179,12 @@ Also validate tasks/INDEX.md:
 2. **No orphan entries:** Every INDEX.md entry has a directory
 3. **Status accuracy:** INDEX.md status matches TASK.md status
 4. **Dependencies valid:** All referenced task IDs exist
+
+## Mark Built-in Task Completed
+
+When the review is complete (either for all tasks or a specific task), call `TaskUpdate`:
+- **taskId**: The ID from the TaskCreate call at the start
+- **status**: `completed`
 
 ## Example Usage
 

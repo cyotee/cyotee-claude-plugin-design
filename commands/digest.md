@@ -1,7 +1,7 @@
 ---
 description: Digest an existing design document into individual tasks
 argument-hint: <file-path>
-allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Bash, TodoWrite
+allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Bash, TaskCreate, TaskUpdate, TaskList
 ---
 
 # Digest Design Document
@@ -11,6 +11,21 @@ Parse an existing design document (UNIFIED_PLAN.md, PRD.md, or any markdown file
 **Document to digest:** $ARGUMENTS
 
 ## Process
+
+### Step 0: Register Operation with Built-in Task Feature
+
+**IMPORTANT:** Use the built-in Task feature to track this multi-step digest operation.
+
+Call `TaskCreate` with:
+- **subject**: `Digest: {filename}`
+- **description**: `Digesting design document {filename} into individual tasks`
+- **activeForm**: `Digesting {filename}`
+
+Then call `TaskUpdate` to set status to `in_progress`:
+- **taskId**: The ID returned from TaskCreate
+- **status**: `in_progress`
+
+Store this task ID for later completion.
 
 ### Step 1: Validate Prerequisites
 
@@ -151,7 +166,13 @@ If task belongs to a submodule, create in that submodule's tasks/ directory.
 
 Update tasks/INDEX.md in each affected repo with new task rows.
 
-### Step 9: Output Summary
+### Step 9: Mark Built-in Task Completed
+
+Call `TaskUpdate` with the task ID from Step 0:
+- **taskId**: The ID from the TaskCreate call
+- **status**: `completed`
+
+### Step 10: Output Summary
 
 ```
 ═══════════════════════════════════════════════════════════════════

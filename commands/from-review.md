@@ -1,7 +1,7 @@
 ---
 description: Create new tasks from code review suggestions
 argument-hint: <task-id>
-allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Bash, TodoWrite
+allowed-tools: Read, Write, Edit, Grep, Glob, AskUserQuestion, Bash, TaskCreate, TaskUpdate, TaskList
 ---
 
 # Create Tasks from Review Suggestions
@@ -11,6 +11,21 @@ Parse a task's REVIEW.md file and create new tasks from accepted suggestions. Th
 **Task to process:** $ARGUMENTS
 
 ## Process
+
+### Step 0: Register Operation with Built-in Task Feature
+
+**IMPORTANT:** Use the built-in Task feature to track this multi-step operation.
+
+Call `TaskCreate` with:
+- **subject**: `From Review: {TASK_ID}`
+- **description**: `Creating new tasks from code review suggestions in {TASK_ID}`
+- **activeForm**: `Processing review suggestions`
+
+Then call `TaskUpdate` to set status to `in_progress`:
+- **taskId**: The ID returned from TaskCreate
+- **status**: `in_progress`
+
+Store this task ID for later completion.
 
 ### Step 1: Validate Input
 
@@ -195,7 +210,13 @@ Mark suggestions as "Converted to task":
 **Notes:** Converted to task {PREFIX}-{NNN}
 ```
 
-### Step 9: Output Summary
+### Step 9: Mark Built-in Task Completed
+
+Call `TaskUpdate` with the task ID from Step 0:
+- **taskId**: The ID from the TaskCreate call
+- **status**: `completed`
+
+### Step 10: Output Summary
 
 ```
 ═══════════════════════════════════════════════════════════════════
