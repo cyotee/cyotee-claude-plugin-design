@@ -281,8 +281,17 @@ The INDEX.md file must follow a strict format for the task parser to work correc
 **Build dependency graph and validate:**
 
 ```bash
-source "${CLAUDE_PLUGIN_ROOT}/../backlog/scripts/deps.sh"
-deps_build_graph
+# Locate the backlog plugin's deps.sh in the versioned cache.
+# CLAUDE_PLUGIN_ROOT is e.g. cache/cyotee/design/4.0.0/ so we go up
+# two levels to reach cache/cyotee/ then find the latest backlog version.
+BACKLOG_DIR=$(ls -d "${CLAUDE_PLUGIN_ROOT}/../../backlog/"*/ 2>/dev/null | sort -V | tail -1)
+if [[ -n "$BACKLOG_DIR" && -f "${BACKLOG_DIR}scripts/deps.sh" ]]; then
+  source "${BACKLOG_DIR}scripts/deps.sh"
+else
+  echo "WARNING: backlog plugin not installed - skipping dependency validation"
+fi
+
+deps_build_graph 2>/dev/null
 ```
 
 **For each listed dependency:**
